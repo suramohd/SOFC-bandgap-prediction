@@ -1,0 +1,44 @@
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+%matplotlib inline 
+import warnings
+warnings.filterwarnings("ignore")
+x = df.drop("HSE bandgap", axis=1)
+# Define correlation function
+def correlated_features(dataset, threshold):
+    corr_matrix = dataset.corr()
+    correlated_pairs = []
+    for i in range(len(corr_matrix.columns)):
+        for j in range(i):
+            if abs(corr_matrix.iloc[i, j]) > threshold:
+                colname_i = corr_matrix.columns[i]
+                colname_j = corr_matrix.columns[j]
+                correlated_pairs.append((colname_i, colname_j))
+    return correlated_pairs
+
+# Set the correlation threshold
+threshold = 0.90
+
+correlated_pairs = correlated_features(x, threshold)
+for pair in correlated_pairs:
+    print(pair)
+#heatmap
+plt.figure(figsize=(15, 10))
+sns.heatmap(cor, annot=False, cmap=plt.cm.CMRmap_r, xticklabels=False, yticklabels=False)
+
+# Define custom ticks at intervals
+tick_spacing = 10  
+ticks = list(range(0, cor.shape[0], tick_spacing)) 
+tick_labels = [str(i) for i in ticks]
+
+# Add ticks to both axes with index-based labels
+plt.xticks(ticks, tick_labels, fontsize=12, rotation=90)
+plt.yticks(ticks, tick_labels, fontsize=12)
+
+# Add axis labels
+plt.xlabel("Indexes of Features", fontsize=14)
+plt.ylabel("Indexes of Features", fontsize=14)
+
+plt.show()
