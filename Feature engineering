@@ -35,3 +35,23 @@ ep = ElementProperty(data_source="magpie", features=["Number",
 column_name = 'composition'
 df = ep.featurize_dataframe(df, col_id=column_name)
 
+from matminer.featurizers.composition.thermo import CohesiveEnergy
+cohesive = CohesiveEnergy(mapi_key="API KEY")
+
+def featurize_row(row):
+    try:
+        composition = row['composition']
+        formation_energy_per_atom = row['formation_energy_per_atom']
+        return cohesive.featurize(comp=composition, formation_energy_per_atom=formation_energy_per_atom)
+    except Exception as e:
+        print(f"Error featurizing row: {str(e)}")
+        return None
+
+# Apply the featurizer to each row in the DataFrame
+df['cohesive_energy'] = df.apply(featurize_row, axis=1)
+
+# Drop rows where featurization failed
+df = df.dropna(subset=['cohesive_energy'])
+
+
+
