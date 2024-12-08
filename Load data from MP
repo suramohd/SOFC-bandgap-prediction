@@ -1,0 +1,34 @@
+import pandas as pd
+import numpy as np
+from mp_api.client import MPRester
+import matminer
+import os 
+from mp_api.client import MPRester
+import pandas as pd
+# Initialize the Materials Project API client
+#code for material upload, used for all materials 
+with MPRester(Unique API key) as mpr:
+    docs = mpr.summary.search(material_ids=["mp-18751"] ,  
+        fields=["material_id", "band_gap", "formula_pretty","formation_energy_per_atom", "composition_reduced","structure", "density", 'cbm', 'vbm', 'is_metal', 'elements','chemsys','energy_per_atom',"symmetry"]
+) 
+# Create a list of dictionaries to represent the data
+data_list = [  
+    {
+        "material_id": doc.material_id,
+        "band_gap": doc.band_gap,
+        "formula_pretty": doc.formula_pretty,
+        "formation_energy_per_atom":doc.formation_energy_per_atom,
+        "composition_reduced":doc.composition_reduced,
+        "structure": doc.structure,
+        "density": doc.density,
+        "cbm": doc.cbm,
+        "vbm": doc.vbm,
+        "is_metal": doc.is_metal,
+        "elements": doc.elements,
+        'chemsys':doc.chemsys,
+        'energy_per_atom':doc.energy_per_atom,
+        "symmetry":doc.symmetry, # i used summetry to take
+    }
+    for doc in docs
+]
+df = pd.DataFrame(data_list) 
