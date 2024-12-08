@@ -1,0 +1,255 @@
+import pandas as pd
+import numpy as np
+import os
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_absolute_error
+from sklearn.preprocessing import StandardScaler
+df = pd.read_excel("End_data.xlsx")
+#drop form x the correlated feature
+y = df["HSE bandgap"]
+x = df.drop(["material_id", "formula_pretty", "structure", "elements", "chemsys", "composition", "cohesive_energy", "HSE bandgap",'MagpieData maximum Number','MagpieData range Number',
+'MagpieData minimum Number',  
+'MagpieData minimum MendeleevNumber',
+'MagpieData mode Number',
+'MagpieData maximum MendeleevNumber',
+'MagpieData avg_dev Number',
+'MagpieData maximum AtomicWeight',
+'MagpieData mean Number',
+'MagpieData range AtomicWeight',
+'MagpieData minimum AtomicWeight',
+'MagpieData maximum MeltingT',
+'MagpieData range MeltingT',
+'MagpieData mean MeltingT',
+'MagpieData range MendeleevNumber',
+'MagpieData mode AtomicWeight',
+'MagpieData minimum Column',
+'MagpieData mean MendeleevNumber',
+'MagpieData avg_dev MendeleevNumber',
+'MagpieData mode MendeleevNumber',
+'MagpieData maximum Column',
+'MagpieData maximum Row',
+'MagpieData mean AtomicWeight',
+'MagpieData range Row',
+'MagpieData minimum MeltingT',
+'MagpieData minimum Row',
+'MagpieData maximum CovalentRadius',
+'MagpieData minimum CovalentRadius',
+'MagpieData minimum Electronegativity',
+'MagpieData mode Column',
+'MagpieData minimum NsValence',
+'MagpieData range NsValence',
+'MagpieData mean NsValence',
+'MagpieData minimum NpValence',
+'MagpieData mode Electronegativity',
+'MagpieData maximum NdValence',
+'MagpieData range NdValence',
+'MagpieData mode Row',
+'MagpieData maximum NfValence',
+'MagpieData range NfValence',
+'MagpieData mean NfValence',
+'MagpieData maximum NValence',
+'MagpieData range NValence',
+'MagpieData avg_dev NsValence',
+'MagpieData maximum NsUnfilled',
+'MagpieData range NsUnfilled',
+'MagpieData mean NsUnfilled',
+'MagpieData mode NpValence',
+'MagpieData maximum NdUnfilled',
+'MagpieData range NdUnfilled',
+'MagpieData mean NdUnfilled',
+'MagpieData maximum NfUnfilled',
+'MagpieData range NfUnfilled',
+'MagpieData mean NfUnfilled',
+'MagpieData maximum NUnfilled',
+'MagpieData range NUnfilled',
+'MagpieData mean NUnfilled',
+'MagpieData maximum GSvolume_pa',
+'MagpieData range GSvolume_pa',
+'MagpieData minimum GSvolume_pa'
+], axis=1)
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.15, random_state=42)
+scaler = StandardScaler()
+x_train_scaled = scaler.fit_transform(x_train)
+x_test_scaled = scaler.transform(x_test)
+
+#LinearSVR
+from sklearn.svm import LinearSVR
+from sklearn.model_selection import GridSearchCV
+parameters = {
+    'epsilon': [0.0, 0.1, 0.2], 
+    'C': [0.1,0.2,0.3,0.4, 1, 10],  
+    'loss': ['epsilon_insensitive', 'squared_epsilon_insensitive'] , 
+    'tol':[0.1,0.001,0.0001,0.00001,0.000001,0.5,0.05]
+}
+svr = LinearSVR( dual='auto',max_iter=200000)
+# Perform grid search
+clf = GridSearchCV(svr, parameters)
+clf.fit(x_train_scaled, y_train)
+best_hyperparameters = clf.best_params_
+print (best_hyperparameters)
+regr =LinearSVR( dual='auto',random_state=42, tol=0.01,C=0.22,epsilon=0.0)
+regr.fit(x_train_scaled , y_train)
+y_pred =regr.predict(x_test_scaled)
+mse=mean_squared_error (y_test,y_pred)
+print ( "LinearSVR (C= 0.22, dual='auto', random_state=42, tol=0.01, epsilon=0.0)")
+print ("------------------------------------------------------------------------")
+print("Mean Squared Error (MSE): {:.3} eV".format(mse))
+print ("Root Mean Squared Error (RMSE): {:.3} eV".format(np.sqrt(mse)))
+print("Coefficient of Determination (R^2): %.2f" % r2_score(y_test, y_pred))
+print ('MAE: \t'+str(mean_absolute_error(y_test,y_pred))+'\n')
+*****************
+#SVR Poly
+from sklearn.svm import SVR
+from sklearn.model_selection import GridSearchCV
+from sklearn.svm import SVR
+# Define the parameter grid
+parameters = {'kernel': [ 'poly'], 'C': [1, 150],'epsilon': [0.1, 0.2, 0.5, 1.0, 2.0, 5.0,0.01,0.001],'gamma':['auto','scale',0.1,0.001,0.5,0.005]}
+svr = SVR()
+# Perform grid search
+clf = GridSearchCV(svr, parameters)
+clf.fit(x_train_scaled, y_train)
+best_hyperparameters = clf.best_params_
+print (best_hyperparameters)
+svr_poly = SVR(kernel="poly", C=140, gamma=0.001, degree=2, epsilon=0.001 , coef0=1.5)
+svr_poly.fit(x_train_scaled, y_train)
+y_pred =svr_poly.predict(x_test_scaled)
+mse=mean_squared_error (y_test,y_pred)
+print ( 'svr_poly (kernel="poly", C=140, gamma=0.001, degree=2, epsilon=0.001 , coef0=1.5)')
+print ("------------------------------------------------------------------------")
+print("training MSE = {:.3} eV".format(mse))
+print ("trainig RMSE ={:.3} eV".format(np.sqrt(mse)))
+print("Coefficient of determination (R^2): %.2f" % r2_score(y_test, y_pred))
+print (' MAE: \t'+str(mean_absolute_error(y_test,y_pred))+'\n')
+*****************
+#DecisionTreeRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.model_selection import GridSearchCV
+
+# Define the DecisionTreeRegressor model
+decision_tree = DecisionTreeRegressor()
+
+# Define the parameter grid
+param_grid = {
+    'max_depth': [None,5,6,7 ,10, 20, 30, 40, 50, 60, 70],
+    'min_samples_split': [2, 5, 10,12,13],
+    'min_samples_leaf': [1, 2, 4],
+    'max_features': [None, 'sqrt', 'log2',20,50]
+}
+grid_search = GridSearchCV(decision_tree, param_grid,cv=3)
+grid_search.fit(x_train_scaled, y_train)
+print("Best parameters:", grid_search.best_params_)
+regressor = DecisionTreeRegressor(max_depth=7,min_samples_split=13,min_samples_leaf=2,random_state=42,max_features=51)
+regressor.fit(x_train_scaled,y_train)
+y_pred =regressor.predict(x_test_scaled)
+mse=mean_squared_error (y_test,y_pred)
+print ( "DecisionTreeRegressor(max_depth=7,min_samples_split=13,min_samples_leaf=2,random_state=42,max_features=51)")
+print ("------------------------------------------------------------------------")
+print("Mean Squared Error (MSE): {:.3} eV".format(mse))
+print ("Root Mean Squared Error (RMSE): {:.3} eV".format(np.sqrt(mse)))
+print("Coefficient of Determination (R^2): %.2f" % r2_score(y_test, y_pred))
+mae = mean_absolute_error(y_test, y_pred)
+print(f'MAE:\t{mae:.3f}\n')
+
+#XGBRegressor
+*****************
+from xgboost import XGBRegressor 
+xg=XGBRegressor(n_estimators=53,max_depth=3,eta=0.3,gamma=0.1,min_child_weight=23,learning_rate=0.2)
+xg.fit(x_train_scaled,y_train)
+y_pred =xg.predict(x_test_scaled)
+mse=mean_squared_error (y_test,y_pred)
+print ( "XGBRegressor(n_estimators=53,max_depth=3,eta=0.3,gamma=0.1,min_child_weight=23,learning_rate=0.2)")
+print ("------------------------------------------------------------------------")
+print("Mean Squared Error (MSE): {:.3} eV".format(mse))
+print ("Root Mean Squared Error (RMSE): {:.3} eV".format(np.sqrt(mse)))
+print("Coefficient of Determination (R^2): %.2f" % r2_score(y_test, y_pred))
+
+mae = mean_absolute_error(y_test, y_pred)
+print(f'MAE:\t{mae:.3f}\n')
+*****************
+#AdaBoostRegressor
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.15, random_state=123)
+scaler = StandardScaler()
+x_train_scaled = scaler.fit_transform(x_train)
+x_test_scaled = scaler.transform(x_test)
+ada = AdaBoostRegressor( n_estimators=5, learning_rate=0.058,loss= 'square',random_state=42)
+ada.fit(x_train_scaled,y_train)
+y_pred =ada.predict(x_test_scaled)
+mse=mean_squared_error (y_test,y_pred)
+print ( "AdaBoostRegressor( n_estimators=5, learning_rate=0.058,loss= 'square',random_state=42)")
+print ("------------------------------------------------------------------------")
+print("Mean Squared Error (MSE): {:.3} eV".format(mse))
+print ("Root Mean Squared Error (RMSE): {:.3} eV".format(np.sqrt(mse)))
+print("Coefficient of Determination (R^2): %.2f" % r2_score(y_test, y_pred))
+mae = mean_absolute_error(y_test, y_pred)
+print(f'MAE:\t{mae:.3f}\n')
+*****************
+#GradientBoostingRegressor
+from sklearn.ensemble import GradientBoostingRegressor
+gb=GradientBoostingRegressor( learning_rate= 0.55,n_estimators= 10, max_depth=2,min_samples_split=2,min_samples_leaf=2,random_state=42,max_features=0.25)
+gb.fit(x_train_scaled,y_train)
+y_pred=gb.predict(x_test_scaled)
+mse=mean_squared_error (y_test,y_pred)
+print ('GradientBoostingRegressor( learning_rate= 0.55,n_estimators= 10, max_depth=2,min_samples_leaf=2,random_state=42,max_features=0.25)')
+print ("------------------------------------------------------------------------")
+print("training MSE = {:.3} eV".format(mse))
+print ("trainig RMSE ={:.3} eV".format(np.sqrt(mse)))
+print("Coefficient of determination: %.2f" % r2_score(y_test,y_pred))
+print ('GradientBoostingRegressor MAE\t'+str(mean_absolute_error(y_test,y_pred))+'\n')
+*****************
+#GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import DotProduct, WhiteKernel
+kernel = DotProduct() + WhiteKernel()
+gpr = GaussianProcessRegressor(alpha=2.51,kernel=kernel,random_state=42)
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.15, random_state=44)
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+x_train_scaled = scaler.fit_transform(x_train)
+x_test_scaled = scaler.transform(x_test)
+gpr.fit(x_train_scaled, y_train)
+y_pred =gpr.predict(x_test_scaled)
+mse=mean_squared_error (y_test,y_pred)
+print ( "GaussianProcessRegressor(alpha=2.51,kernel=kernel,random_state=42)")
+print ("------------------------------------------------------------------------")
+print("Training MSE = {:.3} eV".format(mse))
+print ("trainig RMSE ={:.3} eV".format(np.sqrt(mse)))
+print("Coefficient of determination: %.2f" % r2_score(y_test, y_pred))
+mae = mean_absolute_error(y_test, y_pred)
+print(f'MAE:\t{mae:.3f}\n')
+*****************
+#RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor
+rf= RandomForestRegressor(n_estimators=3,max_depth=4, min_samples_split=2,min_samples_leaf=1, random_state=42,max_features=0.45) 
+rf.fit(x_train_scaled ,y_train)
+y_pred=rf.predict(x_test_scaled)
+mse=mean_squared_error (y_test,y_pred)
+print ( "RandomForestRegressor(n_estimators=3,max_depth=4, min_samples_split=2,min_samples_leaf=1, random_state=42,max_features=0.45)")
+print ("------------------------------------------------------------------------")
+print("Mean Squared Error (MSE): {:.3} eV".format(mse))
+print ("Root Mean Squared Error (RMSE): {:.3} eV".format(np.sqrt(mse)))
+print("Coefficient of Determination (R^2): %.2f" % r2_score(y_test, y_pred))
+mae = mean_absolute_error(y_test, y_pred)
+print(f'MAE:\t{mae:.3f}\n')
+*****************
+# Plotting the actual vs predicted values "scatter plots"
+import matplotlib.pyplot as plt
+plt.scatter(y_test, y_pred, color='blue')
+plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], color='red', linestyle='--')
+plt.xlabel('Actual HSE band gap')
+plt.ylabel('Predicted HSE band gap')
+plt.title('Actual vs Predicted HSE band gap')
+plt.show()
+*****************
+# Plot the histogram of error distribution
+x_limits = (-2, 2)
+errors = y_test - y_pred
+plt.figure(figsize=(8, 6))
+plt.hist(errors, bins=20, color='blue', edgecolor='black', alpha=0.7)
+plt.title('Histogram of Error Distribution (Actual - Predicted)')
+plt.xlabel('Error (eV)')
+plt.ylabel('Frequency')
+plt.grid(True)
+plt.xlim(x_limits)
+plt.show()
