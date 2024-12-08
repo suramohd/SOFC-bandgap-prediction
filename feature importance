@@ -1,0 +1,54 @@
+import plotly.graph_objects as go
+import numpy as np
+importances = np.abs(regr.coef_)
+
+# Normalize the feature importances to compute percentages
+total_importance = np.sum(importances)
+importances_percentage = (importances / total_importance) * 100
+
+# Confirm the sum of all percentages equals 100%
+print(f"Sum of all feature importance percentages: {np.sum(importances_percentage):.2f}%")
+
+# Get feature names
+included = x.columns.values
+
+# Sort features by importance
+indices = np.argsort(importances_percentage)[::-1]
+sorted_features = included[indices]
+sorted_importances_percentage = importances_percentage[indices]
+
+# Select the top 20 features
+top_20_features = sorted_features[:20]
+top_20_percentages = sorted_importances_percentage[:20]
+
+# Calculate the total percentage contribution of the top 20 features
+top_20_total_percentage = np.sum(top_20_percentages)
+print(f"Total importance contribution of the top 20 features: {top_20_total_percentage:.2f}%")
+
+# Create the bar chart with percentages
+fig_bar = go.Figure()
+
+fig_bar.add_trace(go.Bar(
+    x=top_20_features,
+    y=top_20_percentages,
+    marker=dict(
+        color=top_20_percentages,
+        colorscale='balance',
+        showscale=True
+    ),
+    name='Feature Importance (%)'
+))
+
+# Update layout
+fig_bar.update_layout(
+    
+    xaxis=dict(title="Feature Names"),
+    yaxis=dict(title="Importance (%)"),
+    xaxis_tickangle=-45,  # Rotate x-axis labels for better visibility
+    template="plotly_white",
+     height=700,  # Adjust the plot height for better visibility
+    width=800,
+)
+
+# Show the plot
+fig_bar.show()
