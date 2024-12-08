@@ -1,0 +1,37 @@
+from matminer.featurizers.base import MultipleFeaturizer
+from matminer.featurizers.conversions import StrToComposition
+from matminer.featurizers import composition as cf
+#converting formula to composition
+
+stc = StrToComposition()
+df = pd.read_excel("Final Data..xlsx")
+column_name = 'formula_pretty' 
+# Apply the StrToComposition featurizer to that column
+df = stc.featurize_dataframe(df, col_id=column_name)
+
+from matminer.featurizers.composition import ElementProperty 
+ 
+ep = ElementProperty(data_source="magpie", features=["Number",
+                "MendeleevNumber",
+                "AtomicWeight",
+                "MeltingT",
+                "Column",
+                "Row",
+                "CovalentRadius",
+                "Electronegativity",
+                "NsValence",
+                "NpValence",
+                "NdValence",
+                "NfValence",
+                "NValence",
+                "NsUnfilled",
+                "NpUnfilled",
+                "NdUnfilled",
+                "NfUnfilled",
+                "NUnfilled",
+                "GSvolume_pa",
+            
+                  ], stats=["minimum", "maximum", "range", "mean", "avg_dev", "mode"])
+column_name = 'composition'
+df = ep.featurize_dataframe(df, col_id=column_name)
+
